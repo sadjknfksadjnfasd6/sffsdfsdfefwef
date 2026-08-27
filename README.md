@@ -2,7 +2,7 @@
 <b><u>NEAR 60610
 82 locations</b></u>
 
-<b>Near North</b>
+🐿<b>Near North</b>
 Open today until 6:00 pm
 <b>310 W. Division Street
 Chicago, IL 60610</b>
