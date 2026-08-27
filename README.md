@@ -5,7 +5,7 @@
 🐿<b>Near North</b>
 Open today until 6:00 pm
 <b>310 W. Division Street
-Chicago, IL 60610</b>
+Chicago, IL 60610</b> 🧙🏻‍♂️
 
 🐮<b>Water Works</b>
 Open today until 6:00 pm
