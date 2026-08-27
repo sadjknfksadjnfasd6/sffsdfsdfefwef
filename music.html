@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dual Deck Mixer</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#090b10;color:#eef2f7;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input{font:inherit}
+button{border:0;color:#fff;cursor:pointer}
+body{padding:18px}
+.app{max-width:1450px;margin:auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.logo{font-size:22px;font-weight:900;letter-spacing:-.04em}
+.logo span{color:#ff5a36}
+.top-actions{display:flex;gap:8px}
+.btn{background:#171b24;border:1px solid #282e39;padding:9px 13px;border-radius:9px}
+.btn:hover{background:#222834}
+.mixer{display:grid;grid-template-columns:1fr 300px 1fr;gap:12px}
+.deck,.center{background:#10131a;border:1px solid #252b35;border-radius:16px;box-shadow:0 15px 50px #0007}
+.deck{padding:14px}
+.deck-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.deck-title{font-size:14px;font-weight:900;letter-spacing:.08em}
+.deck-a .deck-title{color:#ff6b47}
+.deck-b .deck-title{color:#55b8ff}
+.track{font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:75%}
+.track small{display:block;color:#747d8d;font-weight:500;margin-top:2px}
+.drop{height:145px;border-radius:12px;background:#080a0f;border:1px dashed #39404c;position:relative;overflow:hidden;cursor:pointer}
+.drop:hover{border-color:#697587}
+canvas{width:100%;height:100%;display:block}
+.drop-text{position:absolute;inset:0;display:grid;place-items:center;color:#687283;font-size:12px;pointer-events:none}
+.time{display:flex;justify-content:space-between;color:#8b94a3;font:12px ui-monospace,monospace;margin-top:7px}
+.progress{width:100%;accent-color:#ff5a36}
+.deck-b .progress{accent-color:#55b8ff}
+.transport{display:flex;align-items:center;gap:8px;margin:13px 0}
+.circle{width:46px;height:46px;border-radius:50%;background:#e9edf3;color:#080a0f;font-weight:900;font-size:17px}
+.circle:hover{transform:scale(1.04)}
+.small{width:36px;height:36px;border-radius:9px;background:#1a1f29}
+.small:hover{background:#272e3a}
+.hotcues{display:flex;gap:7px;margin-left:auto}
+.cue{width:34px;height:27px;border-radius:7px;background:#252b35;color:#aeb7c5;font-size:11px}
+.cue.active{background:#ff4f38;color:#fff}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.control{background:#0a0d12;border-radius:10px;padding:9px}
+.control label{display:flex;justify-content:space-between;font-size:10px;color:#7e8796;margin-bottom:5px;text-transform:uppercase}
+input[type=range]{width:100%;accent-color:#ff5a36}
+.deck-b input[type=range]{accent-color:#55b8ff}
+.knobs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.knob{text-align:center}
+.knob input{writing-mode:vertical-lr;direction:rtl;height:66px;width:25px}
+.eq{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.center{padding:14px;display:flex;flex-direction:column;gap:14px}
+.master{text-align:center}
+.master-title{font-size:11px;text-transform:uppercase;color:#7f8898;letter-spacing:.15em}
+.bpm{font:900 38px ui-monospace,monospace;margin:2px}
+.bpm small{font-size:12px;color:#687384}
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px;height:150px}
+.meter{background:#080a0f;border-radius:8px;padding:7px;display:flex;align-items:flex-end}
+.bar{height:20%;width:100%;border-radius:5px;background:linear-gradient(to top,#24db72,#e8e94d,#ff453d);transition:height .06s}
+.cross{padding:12px;background:#0a0d12;border-radius:11px}
+.cross label{display:flex;justify-content:space-between;font-size:10px;color:#7d8694;text-transform:uppercase;margin-bottom:8px}
+.cross input{accent-color:#c8d0da}
+.master-volume{padding:10px;background:#0a0d12;border-radius:11px}
+.master-volume label{font-size:10px;color:#7d8694;text-transform:uppercase}
+.master-volume input{accent-color:#fff}
+.library{border-top:1px solid #272d38;padding-top:12px}
+.library-title{font-size:11px;color:#788191;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px}
+.file-list{display:flex;flex-direction:column;gap:5px;max-height:160px;overflow:auto}
+.file{display:flex;align-items:center;gap:8px;padding:7px;border-radius:7px;background:#151922;font-size:11px}
+.file button{margin-left:auto;background:#252b35;border-radius:5px;padding:4px 7px;font-size:10px}
+.file button:hover{background:#343c49}
+input[type=file]{display:none}
+.footer{color:#596272;font-size:10px;text-align:center;margin-top:12px}
+@media(max-width:1050px){.mixer{grid-template-columns:1fr 1fr}.center{grid-column:1/-1;grid-row:1}.deck{min-width:0}}
+@media(max-width:650px){body{padding:8px}.mixer{grid-template-columns:1fr}.center{grid-column:auto}.top-actions{display:none}.meters{height:90px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="logo">mix<span>cloud</span> / studio</div>
+    <div class="top-actions">
+      <button class="btn" id="loadA">Load Deck A</button>
+      <button class="btn" id="loadB">Load Deck B</button>
+    </div>
+  </div>
+
+  <main class="mixer">
+
+    <!-- DECK A -->
+    <section class="deck deck-a">
+      <div class="deck-head">
+        <div class="deck-title">DECK A</div>
+        <div class="track" id="nameA">No track<small>Drop an audio file</small></div>
+      </div>
+
+      <div class="drop" id="dropA">
+        <canvas id="waveA"></canvas>
+        <div class="drop-text">DROP AUDIO HERE OR CLICK TO LOAD</div>
+      </div>
+
+      <div class="time">
+        <span id="curA">00:00</span>
+        <span id="durA">00:00</span>
+      </div>
+
+      <input class="progress" id="seekA" type="range" min="0" max="1" step=".001" value="0">
+
+      <div class="transport">
+        <button class="small" id="backA">↶</button>
+        <button class="circle" id="playA">▶</button>
+        <button class="small" id="fwdA">↷</button>
+        <div class="hotcues">
+          <button class="cue" data-deck="A">C1</button>
+          <button class="cue" data-deck="A">C2</button>
+          <button class="cue" data-deck="A">C3</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <label>Volume <span id="volValA">100%</span></label>
+          <input id="volA" type="range" min="0" max="1" step=".01" value="1">
+        </div>
+        <div class="control">
+          <label>Pitch <span id="pitchValA">0%</span></label>
+          <input id="pitchA" type="range" min=".8" max="1.2" step=".001" value="1">
+        </div>
+      </div>
+
+      <div class="eq">
+        <div class="knob"><label>LOW</label><input id="lowA" type="range" min="-12" max="12" value="0"></div>
+        <div class="knob"><label>MID</label><input id="midA" type="range" min="-12" max="12" value="0"></div>
+        <div class="knob"><label>HIGH</label><input id="highA" type="range" min="-12" max="12" value="0"></div>
+      </div>
+    </section>
+
+    <!-- CENTER -->
+    <aside class="center">
+      <div class="master">
+        <div class="master-title">Master BPM</div>
+        <div class="bpm" id="bpm">-- <small>BPM</small></div>
+      </div>
+
+      <div class="meters">
+        <div class="meter"><div class="bar" id="meterA"></div></div>
+        <div class="meter"><div class="bar" id="meterB"></div></div>
+      </div>
+
+      <div class="cross">
+        <label><span>Deck A</span><span>Crossfader</span><span>Deck B</span></label>
+        <input id="cross" type="range" min="-1" max="1" step=".01" value="0">
+      </div>
+
+      <div class="master-volume">
+        <label>Master Volume</label>
+        <input id="master" type="range" min="0" max="1" step=".01" value=".9">
+      </div>
+
+      <div class="library">
+        <div class="library-title">Local Library</div>
+        <div class="file-list" id="files">
+          <div style="color:#596272;font-size:11px">
+            Load audio files to build your library.
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- DECK B -->
+    <section class="deck deck-b">
+      <div class="deck-head">
+        <div class="deck-title">DECK B</div>
+        <div class="track" id="nameB">No track<small>Drop an audio file</small></div>
+      </div>
+
+      <div class="drop" id="dropB">
+        <canvas id="waveB"></canvas>
+        <div class="drop-text">DROP AUDIO HERE OR CLICK TO LOAD</div>
+      </div>
+
+      <div class="time">
+        <span id="curB">00:00</span>
+        <span id="durB">00:00</span>
+      </div>
+
+      <input class="progress" id="seekB" type="range" min="0" max="1" step=".001" value="0">
+
+      <div class="transport">
+        <button class="small" id="backB">↶</button>
+        <button class="circle" id="playB">▶</button>
+        <button class="small" id="fwdB">↷</button>
+        <div class="hotcues">
+          <button class="cue" data-deck="B">C1</button>
+          <button class="cue" data-deck="B">C2</button>
+          <button class="cue" data-deck="B">C3</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <label>Volume <span id="volValB">100%</span></label>
+          <input id="volB" type="range" min="0" max="1" step=".01" value="1">
+        </div>
+        <div class="control">
+          <label>Pitch <span id="pitchValB">0%</span></label>
+          <input id="pitchB" type="range" min=".8" max="1.2" step=".001" value="1">
+        </div>
+      </div>
+
+      <div class="eq">
+        <div class="knob"><label>LOW</label><input id="lowB" type="range" min="-12" max="12" value="0"></div>
+        <div class="knob"><label>MID</label><input id="midB" type="range" min="-12" max="12" value="0"></div>
+        <div class="knob"><label>HIGH</label><input id="highB" type="range" min="-12" max="12" value="0"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="footer">
+    Runs locally in your browser. Audio stays on your device.
+  </div>
+</div>
+
+<input id="fileA" type="file" accept="audio/*">
+<input id="fileB" type="file" accept="audio/*">
+
+<script>
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+const audioCtx = new AudioContext();
+
+const masterGain = audioCtx.createGain();
+masterGain.gain.value = .9;
+
+const analyser = audioCtx.createAnalyser();
+analyser.fftSize = 256;
+
+masterGain.connect(analyser);
+analyser.connect(audioCtx.destination);
+
+const decks = {
+  A: createDeck("A", "#ff5a36"),
+  B: createDeck("B", "#55b8ff")
+};
+
+function createDeck(id, color) {
+  const audio = new Audio();
+  audio.preload = "metadata";
+  audio.crossOrigin = "anonymous";
+
+  const source = audioCtx.createMediaElementSource(audio);
+
+  const low = audioCtx.createBiquadFilter();
+  low.type = "lowshelf";
+  low.frequency.value = 180;
+
+  const mid = audioCtx.createBiquadFilter();
+  mid.type = "peaking";
+  mid.frequency.value = 1200;
+  mid.Q.value = 0.8;
+
+  const high = audioCtx.createBiquadFilter();
+  high.type = "highshelf";
+  high.frequency.value = 5000;
+
+  const gain = audioCtx.createGain();
+  gain.gain.value = 1;
+
+  const analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+
+  source
+    .connect(low)
+    .connect(mid)
+    .connect(high)
+    .connect(gain)
+    .connect(analyser)
+    .connect(masterGain);
+
+  return {
+    id,
+    color,
+    audio,
+    source,
+    low,
+    mid,
+    high,
+    gain,
+    analyser,
+    file: null,
+    url: null,
+    cues: [null, null, null],
+    waveform: null
+  };
+}
+
+/* ---------- Helpers ---------- */
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function fmt(seconds) {
+  if (!isFinite(seconds)) return "00:00";
+  seconds = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+}
+
+function resumeAudio() {
+  if (audioCtx.state !== "running") audioCtx.resume();
+}
+
+function deckUI(id) {
+  return {
+    play: $("play" + id),
+    seek: $("seek" + id),
+    vol: $("vol" + id),
+    pitch: $("pitch" + id),
+    low: $("low" + id),
+    mid: $("mid" + id),
+    high: $("high" + id),
+    name: $("name" + id),
+    cur: $("cur" + id),
+    dur: $("dur" + id),
+    canvas: $("wave" + id),
+    drop: $("drop" + id)
+  };
+}
+
+/* ---------- Loading ---------- */
+
+function loadFile(deckId, file) {
+  if (!file || !file.type.startsWith("audio/")) return;
+
+  const deck = decks[deckId];
+  const ui = deckUI(deckId);
+
+  resumeAudio();
+
+  if (deck.url) URL.revokeObjectURL(deck.url);
+
+  deck.file = file;
+  deck.url = URL.createObjectURL(file);
+  deck.audio.src = deck.url;
+  deck.audio.load();
+
+  ui.name.innerHTML =
+    escapeHTML(file.name) +
+    "<small>" +
+    escapeHTML(file.type.replace("audio/","").toUpperCase()) +
+    "</small>";
+
+  ui.drop.querySelector(".drop-text").style.display = "none";
+
+  drawWaveform(deckId);
+  addLibraryFile(file, deckId);
+}
+
+function escapeHTML(str) {
+  return str.replace(/[&<>"']/g, c => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  }[c]));
+}
+
+$("loadA").onclick = () => $("fileA").click();
+$("loadB").onclick = () => $("fileB").click();
+
+$("fileA").onchange = e => loadFile("A", e.target.files[0]);
+$("fileB").onchange = e => loadFile("B", e.target.files[0]);
+
+["A","B"].forEach(id => {
+  const ui = deckUI(id);
+
+  ui.drop.addEventListener("click", () => {
+    $("file" + id).click();
+  });
+
+  ui.drop.addEventListener("dragover", e => {
+    e.preventDefault();
+    ui.drop.style.borderColor = decks[id].color;
+  });
+
+  ui.drop.addEventListener("dragleave", () => {
+    ui.drop.style.borderColor = "";
+  });
+
+  ui.drop.addEventListener("drop", e => {
+    e.preventDefault();
+    ui.drop.style.borderColor = "";
+    loadFile(id, e.dataTransfer.files[0]);
+  });
+});
+
+/* ---------- Playback ---------- */
+
+["A","B"].forEach(id => {
+  const d = decks[id];
+  const ui = deckUI(id);
+
+  ui.play.onclick = async () => {
+    resumeAudio();
+
+    if (d.audio.paused) {
+      await d.audio.play();
+      ui.play.textContent = "Ⅱ";
+    } else {
+      d.audio.pause();
+      ui.play.textContent = "▶";
+    }
+  };
+
+  $("back" + id).onclick = () => {
+    d.audio.currentTime = Math.max(0, d.audio.currentTime - 10);
+  };
+
+  $("fwd" + id).onclick = () => {
+    d.audio.currentTime = Math.min(
+      d.audio.duration || Infinity,
+      d.audio.currentTime + 10
+    );
+  };
+
+  d.audio.addEventListener("loadedmetadata", () => {
+    ui.seek.max = d.audio.duration || 1;
+    ui.dur.textContent = fmt(d.audio.duration);
+  });
+
+  d.audio.addEventListener("timeupdate", () => {
+    if (!ui.seek.matches(":active")) {
+      ui.seek.value = d.audio.currentTime;
+    }
+    ui.cur.textContent = fmt(d.audio.currentTime);
+  });
+
+  d.audio.addEventListener("ended", () => {
+    ui.play.textContent = "▶";
+  });
+
+  ui.seek.addEventListener("input", () => {
+    d.audio.currentTime = Number(ui.seek.value);
+  });
+
+  ui.vol.addEventListener("input", () => {
+    d.gain.gain.value = Number(ui.vol.value);
+    $("volVal" + id).textContent =
+      Math.round(Number(ui.vol.value) * 100) + "%";
+  });
+
+  ui.pitch.addEventListener("input", () => {
+    d.audio.playbackRate = Number(ui.pitch.value);
+
+    const percent =
+      Math.round((Number(ui.pitch.value) - 1) * 100);
+
+    $("pitchVal" + id).textContent =
+      (percent >= 0 ? "+" : "") + percent + "%";
+  });
+
+  ui.low.oninput = e => d.low.gain.value = Number(e.target.value);
+  ui.mid.oninput = e => d.mid.gain.value = Number(e.target.value);
+  ui.high.oninput = e => d.high.gain.value = Number(e.target.value);
+});
+
+/* ---------- Crossfader ---------- */
+
+$("cross").addEventListener("input", e => {
+  const x = Number(e.target.value);
+
+  // Constant-power-ish crossfade.
+  const a = Math.cos((x + 1) * Math.PI / 4);
+  const b = Math.sin((x + 1) * Math.PI / 4);
+
+  decks.A.gain.gain.value =
+    a * Number($("volA").value);
+
+  decks.B.gain.gain.value =
+    b * Number($("volB").value);
+});
+
+$("master").addEventListener("input", e => {
+  masterGain.gain.value = Number(e.target.value);
+});
+
+/* ---------- Hot cues ---------- */
+
+document.querySelectorAll(".cue").forEach(button => {
+  button.addEventListener("click", () => {
+    const id = button.dataset.deck;
+    const index = [...button.parentNode.children].indexOf(button);
+    const d = decks[id];
+
+    if (!d.audio.src) return;
+
+    if (d.cues[index] === null) {
+      d.cues[index] = d.audio.currentTime;
+      button.classList.add("active");
+      button.textContent = fmt(d.cues[index]);
+    } else {
+      d.audio.currentTime = d.cues[index];
+      resumeAudio();
+      d.audio.play();
+      deckUI(id).play.textContent = "Ⅱ";
+    }
+  });
+});
+
+/* ---------- Waveform ---------- */
+
+async function drawWaveform(id) {
+  const d = decks[id];
+  const canvas = deckUI(id).canvas;
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = canvas.clientWidth * devicePixelRatio;
+  canvas.height = canvas.clientHeight * devicePixelRatio;
+
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+
+  ctx.fillStyle = "#080a0f";
+  ctx.fillRect(0,0,width,height);
+
+  try {
+    const response = await fetch(d.url);
+    const buffer = await response.arrayBuffer();
+    const decoded = await audioCtx.decodeAudioData(buffer);
+
+    const data = decoded.getChannelData(0);
+    const step = Math.ceil(data.length / width);
+
+    ctx.strokeStyle = d.color;
+    ctx.globalAlpha = .8;
+    ctx.lineWidth = 1;
+
+    for (let x = 0; x < width; x++) {
+      let min = 1;
+      let max = -1;
+
+      const start = x * step;
+      const end = Math.min(start + step, data.length);
+
+      for (let i = start; i < end; i++) {
+        const value = data[i];
+        if (value < min) min = value;
+        if (value > max) max = value;
+      }
+
+      const y1 = ((1 + min) / 2) * height;
+      const y2 = ((1 + max) / 2) * height;
+
+      ctx.beginPath();
+      ctx.moveTo(x, y1);
+      ctx.lineTo(x, y2);
+      ctx.stroke();
+    }
+
+    d.waveform = decoded;
+  } catch (err) {
+    drawFakeWave(id);
+  }
+}
+
+function drawFakeWave(id) {
+  const d = decks[id];
+  const canvas = deckUI(id).canvas;
+  const ctx = canvas.getContext("2d");
+
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+
+  ctx.fillStyle = "#080a0f";
+  ctx.fillRect(0,0,width,height);
+
+  ctx.strokeStyle = d.color;
+  ctx.globalAlpha = .75;
+
+  ctx.beginPath();
+
+  for (let x = 0; x < width; x++) {
+    const y =
+      height / 2 +
+      Math.sin(x * .08) * 15 +
+      Math.sin(x * .31) * 7 +
+      (Math.random() - .5) * 15;
+
+    if (x === 0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+
+  ctx.stroke();
+}
+
+/* ---------- Library ---------- */
+
+function addLibraryFile(file, deckId) {
+  const list = $("files");
+
+  if (
+    list.children.length === 1 &&
+    list.firstElementChild.textContent.includes("Load audio")
+  ) {
+    list.innerHTML = "";
+  }
+
+  const row = document.createElement("div");
+  row.className = "file";
+
+  const name = document.createElement("span");
+  name.textContent = file.name;
+
+  const a = document.createElement("button");
+  a.textContent = "A";
+  a.onclick = () => loadFile("A", file);
+
+  const b = document.createElement("button");
+  b.textContent = "B";
+  b.onclick = () => loadFile("B", file);
+
+  row.append(name,a,b);
+  list.appendChild(row);
+}
+
+/* ---------- Fake BPM estimation ---------- */
+
+function updateBPM() {
+  const active =
+    decks.A.audio.src ? decks.A :
+    decks.B.audio.src ? decks.B : null;
+
+  if (!active || !active.waveform) {
+    $("bpm").innerHTML = "-- <small>BPM</small>";
+    return;
+  }
+
+  // Lightweight browser-only approximation.
+  const data = active.waveform.getChannelData(0);
+  const sampleRate = active.waveform.sampleRate;
+
+  let crossings = 0;
+  let previous = 0;
+
+  for (
+    let i = 0;
+    i < Math.min(data.length, sampleRate * 10);
+    i += 100
+  ) {
+    const v = Math.abs(data[i]);
+
+    if (v > .45 && previous <= .45) crossings++;
+    previous = v;
+  }
+
+  let bpm = Math.round((crossings / 10) * 60);
+
+  if (bpm < 60) bpm *= 2;
+  if (bpm > 180) bpm = 120;
+
+  $("bpm").innerHTML =
+    bpm + " <small>BPM</small>";
+}
+
+/* ---------- Visual meters ---------- */
+
+function meterLoop() {
+  ["A","B"].forEach(id => {
+    const d = decks[id];
+    const buffer = new Uint8Array(d.analyser.frequencyBinCount);
+
+    d.analyser.getByteFrequencyData(buffer);
+
+    let sum = 0;
+
+    for (const n of buffer) sum += n;
+
+    const level =
+      Math.min(100, (sum / buffer.length) / 255 * 180);
+
+    $("meter" + id).style.height =
+      Math.max(4, level) + "%";
+  });
+
+  requestAnimationFrame(meterLoop);
+}
+
+meterLoop();
+
+setInterval(updateBPM, 2500);
+
+/* ---------- Keyboard controls ---------- */
+
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input,button")) return;
+
+  if (e.code === "Space") {
+    e.preventDefault();
+
+    const a = decks.A;
+    const b = decks.B;
+
+    if (a.audio.src && !a.audio.paused) {
+      a.audio.pause();
+      deckUI("A").play.textContent = "▶";
+    } else if (b.audio.src && !b.audio.paused) {
+      b.audio.pause();
+      deckUI("B").play.textContent = "▶";
+    } else if (a.audio.src) {
+      resumeAudio();
+      a.audio.play();
+      deckUI("A").play.textContent = "Ⅱ";
+    }
+  }
+
+  if (e.key.toLowerCase() === "q") {
+    $("playA").click();
+  }
+
+  if (e.key.toLowerCase() === "p") {
+    $("playB").click();
+  }
+});
+
+/* Redraw waveforms if the window changes size. */
+window.addEventListener("resize", () => {
+  ["A","B"].forEach(id => {
+    if (decks[id].file) drawWaveform(id);
+  });
+});
+</script>
+</body>
+</html>
