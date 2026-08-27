@@ -32,8 +32,8 @@ Closed until 12:00 pm Thursday
 <b>1150 W. Fullerton Avenue
 Chicago, IL 60614</b>
 
-# sffsdfsdfefwef
-asfsasfasf
+# MCDONALDS
+
 https://sadjknfksadjnfasd6.github.io/sffsdfsdfefwef/
 
 <b>MADE IN CHICAGO</b> BECAUSE THEY VOTED IN A BLACK MAYOR WITH THE INITIALS <b>BJ</b> ...
