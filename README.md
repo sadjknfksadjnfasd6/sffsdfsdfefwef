@@ -22,12 +22,12 @@ Open today until 8:00 pm
 <b>400 S. State Street
 Chicago, IL 60605</b>
 
-<b>West Town</b>
+🐧<b>West Town</b>
 Closed until 12:00 pm Thursday
 <b>1625 W. Chicago Avenue
 Chicago, IL 60622</b>
 
-<b>Lincoln Park</b>
+🦖<b>Lincoln Park</b>
 Closed until 12:00 pm Thursday
 <b>1150 W. Fullerton Avenue
 Chicago, IL 60614</b>
