@@ -32,7 +32,7 @@ Closed until 12:00 pm Thursday
 <b>1150 W. Fullerton Avenue
 Chicago, IL 60614</b>
 
-☘️  <b><u># MCDONALD'S</b></u>  ☘️
+☘️  <b><u># MCDONALD'S</b></u>🍟  ☘️
 
 https://sadjknfksadjnfasd6.github.io/sffsdfsdfefwef/
 
