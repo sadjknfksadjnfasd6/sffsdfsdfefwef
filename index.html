@@ -3,6 +3,225 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lumber Jack Christmas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#10251a;color:white;font:16px Arial,sans-serif;display:flex;justify-content:center;padding:20px}
+#game{width:min(900px,96vw);background:#183a25;border:3px solid #d9b85c;border-radius:16px;overflow:hidden}
+header{padding:12px 16px;background:#10251a;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+h1{font-size:22px;margin:0 auto 0 0}.stats{font-weight:bold;color:#ffd85c}
+button{border:0;border-radius:8px;padding:9px 12px;font-weight:bold;cursor:pointer}
+canvas{display:block;width:100%;height:auto;background:#8bd0ee}
+.controls{display:flex;justify-content:center;padding:10px;background:#173522}
+.dpad{display:grid;grid-template-columns:48px 48px 48px;grid-template-rows:48px 48px;gap:5px}
+footer{text-align:center;padding:10px;background:#10251a;color:#d6e4d7}
+.shop{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+</style>
+</head>
+<body>
+<div id="game">
+<header>
+<h1>🪓 Lumber Jack: Christmas Cut</h1>
+<div class="stats">💰 <span id="gold">0</span> &nbsp; 🎄 <span id="count">0</span> &nbsp; 🪓 Lv.<span id="axeLv">1</span> &nbsp; ⚡ Lv.<span id="speedLv">1</span></div>
+<button id="reset">Reset</button>
+</header>
+<canvas id="canvas" width="900" height="560"></canvas>
+<div class="controls">
+<div class="dpad">
+<div></div><button data-move="up">▲</button><div></div>
+<button data-move="left">◀</button><button data-move="down">▼</button><button data-move="right">▶</button>
+</div>
+</div>
+<footer>
+Move with the D-pad or Arrow/WASD keys. Get close to a tree to chop it.
+<div class="shop">
+<button id="axe">🪓 Axe Upgrade: <span id="axeCost">10</span>💰</button>
+<button id="speed">⚡ Speed Upgrade: <span id="speedCost">15</span>💰</button>
+</div>
+</footer>
+</div>
+<script>
+(function(){
+"use strict";
+var canvas=document.getElementById("canvas");
+var ctx=canvas.getContext("2d");
+var gold=0,count=0,axeLevel=1,speedLevel=1;
+var jack={x:450,y:430};
+var trees=[];
+var particles=[];
+var keys={};
+var chopClock=0;
+
+function tree(x,y,g){
+ return {x:x,y:y,gold:g||false,hp:g?3:2,max:g?3:2,shake:0,dead:false,fall:0};
+}
+function seed(){
+ trees=[
+  tree(100,425,false),tree(220,400,false),tree(350,440,true),
+  tree(520,405,false),tree(650,435,false),tree(790,400,true),
+  tree(145,470,false),tree(300,475,false),tree(590,470,false),tree(735,475,false)
+ ];
+}
+seed();
+
+function txt(id,v){document.getElementById(id).textContent=v}
+function updateHUD(){
+ txt("gold",gold);txt("count",count);txt("axeLv",axeLevel);txt("speedLv",speedLevel);
+ txt("axeCost",10*axeLevel);txt("speedCost",15*speedLevel);
+}
+
+function drawBackground(){
+ var grad=ctx.createLinearGradient(0,0,0,560);
+ grad.addColorStop(0,"#86cdec");grad.addColorStop(1,"#d9f2ef");
+ ctx.fillStyle=grad;ctx.fillRect(0,0,900,560);
+ ctx.fillStyle="#fff";ctx.globalAlpha=.75;
+ for(var i=0;i<55;i++){
+   var sx=(i*97)%900, sy=(i*53+30)%430;
+   ctx.beginPath();ctx.arc(sx,sy,2,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+ ctx.fillStyle="#9bd477";ctx.fillRect(0,455,900,105);
+ ctx.fillStyle="#7eb85d";ctx.fillRect(0,455,900,8);
+ ctx.fillStyle="#245737";ctx.font="bold 20px Arial";ctx.fillText("🎄 CHRISTMAS FOREST",20,35);
+}
+
+function drawTree(t){
+ ctx.save();
+ var wobble=t.shake>0?Math.sin(Date.now()/35)*3:0;
+ ctx.translate(t.x+wobble,t.y);
+ if(t.dead){ctx.rotate(Math.min(1,t.fall)*1.1)}
+ ctx.fillStyle="#654020";ctx.fillRect(-13,-70,26,78);
+ var greens=t.gold?"#d9a927":["#176437","#1d7b43","#259651"];
+ for(var i=0;i<3;i++){
+   ctx.fillStyle=t.gold?greens:["#176437","#1d7b43","#259651"][i];
+   ctx.beginPath();ctx.moveTo(0,-210+i*48);ctx.lineTo(-75+i*10,-72+i*38);ctx.lineTo(75-i*10,-72+i*38);ctx.closePath();ctx.fill();
+ }
+ ctx.fillStyle="#ffe46b";ctx.beginPath();ctx.arc(0,-215,10,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#fff";
+ for(var j=0;j<6;j++){ctx.beginPath();ctx.arc((j*23)%70-35,-175+(j%3)*38,4,0,Math.PI*2);ctx.fill()}
+ if(t.gold){ctx.fillStyle="#ffdf43";ctx.font="bold 20px Arial";ctx.fillText("5G",-25,-225)}
+ if(!t.dead){
+   ctx.fillStyle="#38231c";ctx.fillRect(-30,-235,60,8);
+   ctx.fillStyle="#54e37a";ctx.fillRect(-30,-235,60*(t.hp/t.max),8);
+ }
+ ctx.restore();
+}
+
+function drawJack(){
+ ctx.save();ctx.translate(jack.x,jack.y);
+ ctx.fillStyle="rgba(0,0,0,.25)";ctx.beginPath();ctx.ellipse(0,10,30,9,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#171717";ctx.fillRect(-17,-2,13,18);ctx.fillRect(5,-2,13,18);
+ ctx.fillStyle="#d22b2b";ctx.fillRect(-21,-55,42,48);
+ ctx.strokeStyle="#ffd064";ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(-19,-35);ctx.lineTo(19,-35);ctx.moveTo(-7,-55);ctx.lineTo(-7,-8);ctx.moveTo(8,-55);ctx.lineTo(8,-8);ctx.stroke();
+ ctx.fillStyle="#e4ad7c";ctx.beginPath();ctx.arc(0,-72,18,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#51301f";ctx.beginPath();ctx.arc(0,-65,15,0,Math.PI);ctx.fill();
+ ctx.fillStyle="#d71920";ctx.fillRect(-24,-92,48,10);ctx.beginPath();ctx.arc(0,-91,16,Math.PI,0);ctx.fill();
+ ctx.fillStyle="#fff";ctx.fillRect(-23,-95,46,5);
+ ctx.strokeStyle="#6b4024";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(16,-10);ctx.lineTo(32,-43);ctx.stroke();
+ ctx.fillStyle="#dce4e7";ctx.beginPath();ctx.moveTo(27,-47);ctx.lineTo(49,-42);ctx.lineTo(37,-27);ctx.closePath();ctx.fill();
+ ctx.restore();
+}
+
+function burst(x,y,g){
+ for(var i=0;i<8;i++)particles.push({x:x,y:y,vx:(Math.random()-.5)*100,vy:-40-Math.random()*70,life:.5,g:g});
+}
+function nearest(){
+ var best=null,dist=999;
+ trees.forEach(function(t){
+   if(t.dead)return;
+   var d=Math.hypot(jack.x-t.x,jack.y-t.y);
+   if(d<dist){dist=d;best=t}
+ });
+ return dist<105?best:null;
+}
+function chop(dt){
+ var t=nearest();
+ chopClock-=dt;
+ if(t && chopClock<=0){
+   chopClock=.65/axeLevel;t.hp--;t.shake=.2;burst(t.x,t.y-100,t.gold);
+   if(t.hp<=0){
+     t.dead=true;t.fall=.1;
+     var reward=t.gold?5*axeLevel:axeLevel;
+     gold+=reward;count++;updateHUD();
+     setTimeout(function(){
+       var n=trees.indexOf(t);if(n>=0)trees.splice(n,1);
+       var nx=70+Math.random()*760,ny=395+Math.random()*75;
+       trees.push(tree(nx,ny,Math.random()<.15));
+     },500);
+   }
+ }
+}
+function move(dt){
+ var dx=(keys.right?1:0)-(keys.left?1:0);
+ var dy=(keys.down?1:0)-(keys.up?1:0);
+ if(dx||dy){
+   var l=Math.hypot(dx,dy);
+   jack.x+=dx/l*(150+speedLevel*35)*dt;
+   jack.y+=dy/l*(150+speedLevel*35)*dt;
+   jack.x=Math.max(35,Math.min(865,jack.x));jack.y=Math.max(360,Math.min(470,jack.y));
+ }
+}
+function particlesUpdate(dt){
+ particles.forEach(function(p){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=150*dt;p.life-=dt});
+ particles=particles.filter(function(p){return p.life>0});
+}
+function drawParticles(){
+ particles.forEach(function(p){ctx.globalAlpha=Math.max(0,p.life*2);ctx.fillStyle=p.g?"#ffd43b":"#8b5a35";ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill()});
+ ctx.globalAlpha=1;
+}
+
+var last=performance.now();
+function loop(now){
+ var dt=Math.min(.04,(now-last)/1000);last=now;
+ move(dt);chop(dt);particlesUpdate(dt);
+ drawBackground();
+ trees.forEach(function(t){if(t.shake>0)t.shake-=dt;drawTree(t)});
+ drawJack();drawParticles();
+ requestAnimationFrame(loop);
+}
+
+document.addEventListener("keydown",function(e){
+ var k=e.key.toLowerCase();
+ if(k==="arrowup"||k==="w")keys.up=true;
+ if(k==="arrowdown"||k==="s")keys.down=true;
+ if(k==="arrowleft"||k==="a")keys.left=true;
+ if(k==="arrowright"||k==="d")keys.right=true;
+});
+document.addEventListener("keyup",function(e){
+ var k=e.key.toLowerCase();
+ if(k==="arrowup"||k==="w")keys.up=false;
+ if(k==="arrowdown"||k==="s")keys.down=false;
+ if(k==="arrowleft"||k==="a")keys.left=false;
+ if(k==="arrowright"||k==="d")keys.right=false;
+});
+document.querySelectorAll("[data-move]").forEach(function(b){
+ b.onclick=function(){
+   var d=b.getAttribute("data-move");
+   jack.x+=d==="left"?-55:d==="right"?55:0;
+   jack.y+=d==="up"?-55:d==="down"?55:0;
+   jack.x=Math.max(35,Math.min(865,jack.x));jack.y=Math.max(360,Math.min(470,jack.y));
+ };
+});
+document.getElementById("axe").onclick=function(){
+ var cost=10*axeLevel;if(gold>=cost){gold-=cost;axeLevel++;updateHUD()}
+};
+document.getElementById("speed").onclick=function(){
+ var cost=15*speedLevel;if(gold>=cost){gold-=cost;speedLevel++;updateHUD()}
+};
+document.getElementById("reset").onclick=function(){
+ gold=0;count=0;axeLevel=1;speedLevel=1;jack.x=450;jack.y=430;particles=[];seed();updateHUD();
+};
+updateHUD();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Snowflake Library Game</title>
 <style>
   * { box-sizing: border-box; }
