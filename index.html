@@ -1,115 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Snowflake Library Game</title>
+<style>
+  * { box-sizing: border-box; }
 
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #061426;
+    color: white;
+  }
 
-<body lang=EN-US style='tab-interval:.5in;word-wrap:break-word'>
+  #game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    cursor: crosshair;
+    background:
+      radial-gradient(circle at 50% 10%, #244f79 0, #0d2946 32%, #061426 72%);
+  }
 
-<div class=WordSection1>
+  #game::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: .25;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
 
-<p class=MsoNormal><b><span style='font-size:20.0pt;line-height:107%;
-color:#0D0D0D;mso-themecolor:text1;mso-themetint:242'>NEAR 60610<o:p></o:p></span></b></p>
+  #hud {
+    position: absolute;
+    z-index: 20;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    pointer-events: none;
+  }
 
-<p class=MsoNormal><u>82 locations<o:p></o:p></u></p>
+  .panel {
+    padding: 12px 16px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 14px;
+    background: rgba(4,17,31,.72);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
 
-<p class=MsoNormal><span style='color:black;mso-themecolor:text1'><o:p>&nbsp;</o:p></span></p>
+  #title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: .02em;
+  }
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'>Near
-North<o:p></o:p></span></u></b></p>
+  #subtitle {
+    margin-top: 3px;
+    font-size: 12px;
+    opacity: .72;
+  }
 
-<p class=MsoNormal><i><u>Open today until 6:00 pm<o:p></o:p></u></i></p>
+  #stats {
+    text-align: right;
+    font-weight: 700;
+  }
 
-<p class=MsoNormal><b><i>310 W. Division Street<o:p></o:p></i></b></p>
+  #score { color: #bcecff; }
+  #found { color: #b9ffd7; }
 
-<p class=MsoNormal><b><i>Chicago, IL 60610<o:p></o:p></i></b></p>
+  #map {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
 
-<p class=MsoNormal><b><i><u><span style='color:#4472C4;mso-themecolor:accent1'>Phone:(312)
-744-0991<o:p></o:p></span></u></i></b></p>
+  .library {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 154px;
+    padding: 10px 12px;
+    border-radius: 13px;
+    border: 1px solid rgba(166,225,255,.34);
+    background: rgba(8,29,49,.86);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.04) inset,
+      0 10px 24px rgba(0,0,0,.24);
+    transition: .2s ease;
+    cursor: pointer;
+    user-select: none;
+  }
 
-<p class=MsoNormal><b><i><u>0.5 miles away<o:p></o:p></u></i></b></p>
+  .library:hover {
+    transform: translate(-50%, -50%) scale(1.04);
+    border-color: #9cecff;
+  }
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'><o:p><span
- style='text-decoration:none'>&nbsp;</span></o:p></span></u></b></p>
+  .library.found {
+    border-color: #8dffcb;
+    background: rgba(13,65,54,.9);
+  }
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'>Water
-Works<o:p></o:p></span></u></b></p>
+  .pin {
+    position: absolute;
+    left: 50%;
+    top: -12px;
+    width: 18px;
+    height: 18px;
+    transform: translateX(-50%) rotate(45deg);
+    border-radius: 5px 5px 5px 0;
+    background: #8bdcff;
+    box-shadow: 0 0 18px #62d6ff;
+  }
 
-<p class=MsoNormal><i><u>Open today until 6:00 pm<o:p></o:p></u></i></p>
+  .found .pin {
+    background: #71ffc4;
+    box-shadow: 0 0 18px #57ffb7;
+  }
 
-<p class=MsoNormal><b><i>163 E. Pearson Street<o:p></o:p></i></b></p>
+  .library-name {
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.15;
+  }
 
-<p class=MsoNormal><b><i>Chicago, IL 60611<o:p></o:p></i></b></p>
+  .library-address {
+    margin-top: 5px;
+    font-size: 11px;
+    line-height: 1.3;
+    opacity: .72;
+  }
 
-<p class=MsoNormal><b><i><u><span style='color:#4472C4;mso-themecolor:accent1'>Phone:(312)
-742-8811<o:p></o:p></span></u></i></b></p>
+  .library-status {
+    margin-top: 5px;
+    font-size: 10px;
+    color: #bcecff;
+  }
 
-<p class=MsoNormal><b><i><u>1.6 miles away<o:p></o:p></u></i></b></p>
+  .found .library-status {
+    color: #8dffcb;
+  }
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'><o:p><span
- style='text-decoration:none'>&nbsp;</span></o:p></span></u></b></p>
+  .snowflake {
+    position: absolute;
+    z-index: 10;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    color: white;
+    font-size: 27px;
+    text-shadow:
+      0 0 8px #fff,
+      0 0 20px #72dfff;
+    user-select: none;
+    cursor: pointer;
+    animation: spin 3s linear infinite;
+  }
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'>West
-Loop<o:p></o:p></span></u></b></p>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
 
-<p class=MsoNormal><b><i><u>Closed until 12:00 pm Thursday<o:p></o:p></u></i></b></p>
+  .burst {
+    position: absolute;
+    z-index: 15;
+    pointer-events: none;
+    color: #c9f7ff;
+    font-size: 22px;
+    font-weight: 900;
+    animation: burst .7s ease-out forwards;
+  }
 
-<p class=MsoNormal><b><i>122 N. Aberdeen Street<o:p></o:p></i></b></p>
+  @keyframes burst {
+    from {
+      transform: translate(-50%,0) scale(.7);
+      opacity: 1;
+    }
+    to {
+      transform: translate(-50%,-55px) scale(1.25);
+      opacity: 0;
+    }
+  }
 
-<p class=MsoNormal><b><i>Chicago, IL 60607<o:p></o:p></i></b></p>
+  #message {
+    position: absolute;
+    z-index: 30;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    max-width: min(90vw, 600px);
+    text-align: center;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgba(4,17,31,.82);
+    border: 1px solid rgba(255,255,255,.15);
+    font-size: 13px;
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+  }
 
-<p class=MsoNormal><b><i><u><span style='color:#4472C4;mso-themecolor:accent1'>Phone:(312)
-744-2995<o:p></o:p></span></u></i></b></p>
+  #start {
+    position: absolute;
+    z-index: 50;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(2,10,20,.66);
+    backdrop-filter: blur(7px);
+  }
 
-<p class=MsoNormal><b><i><u>1.7 miles away<o:p></o:p></u></i></b></p>
+  #start.hidden { display: none; }
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'><o:p><span
- style='text-decoration:none'>&nbsp;</span></o:p></span></u></b></p>
+  .card {
+    width: min(92vw, 480px);
+    padding: 30px;
+    border-radius: 24px;
+    text-align: center;
+    background: linear-gradient(145deg, rgba(20,59,91,.95), rgba(4,20,37,.96));
+    border: 1px solid rgba(174,235,255,.25);
+    box-shadow: 0 30px 80px rgba(0,0,0,.4);
+  }
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'>Harold
-Washington Library Center<o:p></o:p></span></u></b></p>
+  .bigflake {
+    font-size: 70px;
+    filter: drop-shadow(0 0 20px #69dfff);
+  }
 
-<p class=MsoNormal><i><u>Open today until 8:00 pm<o:p></o:p></u></i></p>
+  h1 {
+    margin: 5px 0 8px;
+    font-size: 30px;
+  }
 
-<p class=MsoNormal><b><i>400 S. State Street<o:p></o:p></i></b></p>
+  .card p {
+    margin: 8px 0;
+    opacity: .78;
+    line-height: 1.5;
+  }
 
-<p class=MsoNormal><b><i>Chicago, IL 60605<o:p></o:p></i></b></p>
+  button {
+    margin-top: 18px;
+    border: 0;
+    padding: 12px 24px;
+    border-radius: 999px;
+    background: #a7ebff;
+    color: #062035;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(80,210,255,.3);
+  }
 
-<p class=MsoNormal><b><i><u><span style='color:#4472C4;mso-themecolor:accent1'>Phone:(312)
-747-4300<o:p></o:p></span></u></i></b></p>
+  button:hover { background: white; }
 
-<p class=MsoNormal><b><i><u>1.8 miles away<o:p></o:p></u></i></b></p>
+  #source {
+    position: absolute;
+    z-index: 20;
+    right: 16px;
+    bottom: 16px;
+    font-size: 10px;
+    opacity: .45;
+    pointer-events: auto;
+  }
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'><o:p><span
- style='text-decoration:none'>&nbsp;</span></o:p></span></u></b></p>
+  #source a {
+    color: white;
+  }
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'>West
-Town<o:p></o:p></span></u></b></p>
+  @media (max-width: 600px) {
+    .library {
+      width: 125px;
+      padding: 8px 9px;
+    }
 
-<p class=MsoNormal><i><u>Closed until 12:00 pm Thursday<o:p></o:p></u></i></p>
+    .library-name { font-size: 12px; }
+    .library-address { font-size: 9px; }
+    #title { font-size: 16px; }
+  }
+</style>
+</head>
 
-<p class=MsoNormal><b><i>1625 W. Chicago Avenue<o:p></o:p></i></b></p>
+<body>
+<div id="game">
 
-<p class=MsoNormal><b><i>Chicago, IL 60622<o:p></o:p></i></b></p>
+  <div id="hud">
+    <div class="panel">
+      <div id="title">❄️ Snowflake Libraries</div>
+      <div id="subtitle">Catch snowflakes to discover Chicago libraries</div>
+    </div>
 
-<p class=MsoNormal><b><i><u><span style='color:#4472C4;mso-themecolor:accent1'>Phone:(312)
-743-0450<o:p></o:p></span></u></i></b></p>
+    <div class="panel" id="stats">
+      <div>Score: <span id="score">0</span></div>
+      <div>Libraries: <span id="found">0</span>/<span id="total">0</span></div>
+    </div>
+  </div>
 
-<p class=MsoNormal><b><i><u>2.1 miles away<o:p></o:p></u></i></b></p>
+  <div id="map"></div>
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'><o:p><span
- style='text-decoration:none'>&nbsp;</span></o:p></span></u></b></p>
+  <div id="message">
+    Catch the falling ❄ flakes. Each catch reveals a nearby library.
+  </div>
 
-<p class=MsoNormal><b><u><span style='font-size:14.0pt;line-height:107%'>Lincoln
-Park<o:p></o:p></span></u></b></p>
+  <div id="source">
+    Source:
+    <a href="https://sadjknfksadjnfasd6.github.io/sffsdfsdfefwef/"
+       target="_blank" rel="noopener">library locations</a>
+  </div>
 
-<p class=MsoNormal><i><u>Closed until 12:00 pm Thursday<o:p></o:p></u></i></p>
-
-<p class=MsoNormal><b><i>1150 W. Fullerton Avenue<o:p></o:p></i></b></p>
-
-<p class=MsoNormal><b><i>Chicago, IL 60614<o:p></o:p></i></b></p>
-
-<p class=MsoNormal><b><i><u><span style='color:#4472C4;mso-themecolor:accent1'>Phone:(312)
-744-1926<o:p></o:p></span></u></i></b></p>
-
+  <div id="start">
+    <div class="card">
+      <div class="bigflake">❄</div>
+      <h1>Snowflake Library Hunt</h1>
+      <p>
+        Catch falling snowflakes and uncover library locations
+        from the supplied Chicago library directory.
+      </p>
+      <p>
+        Click the library markers to mark locations as discovered.
+      </p>
+      <button id="play">Start Game</button>
+    </div>
+  </div>
 </div>
 
-</body>
+<script>
+"use strict";
 
+/*
+  Single-file, dependency-free snowflake game.
+
+  The supplied directory currently exposes these locations to the
+  page reader. The game also attempts to fetch the source page and
+  parse additional location cards when the browser permits CORS.
+*/
+
+const SOURCE_URL =
+  "https://sadjknfksadjnfasd6.github.io/sffsdfsdfefwef/";
+
+const FALLBACK_LIBRARIES = [
+  {
+    name: "Near North",
+    status: "Open today until 6:00 pm",
+    address: "310 W. Division Street, Chicago, IL 60610",
+    phone: "(312) 744-0991"
+  },
+  {
+    name: "Water Works",
+    status: "Open today until 6:00 pm",
+    address: "163 E. Pearson Street, Chicago, IL 60611",
+    phone: "(312) 742-8811"
+  },
+  {
+    name: "West Loop",
+    status: "Closed until 12:00 pm Thursday",
+    address: "122 N. Aberdeen Street, Chicago, IL 60607",
+    phone: "(312) 744-2995"
+  },
+  {
+    name: "Harold Washington Library Center",
+    status: "Open today until 8:00 pm",
+    address: "400 S. State Street, Chicago, IL 60605",
+    phone: "(312) 747-4300"
+  },
+  {
+    name: "West Town",
+    status: "Closed until 12:00 pm Thursday",
+    address: "1625 W. Chicago Avenue, Chicago, IL 60622",
+    phone: "(312) 743-0450"
+  },
+  {
+    name: "Lincoln Park",
+    status: "Closed until 12:00 pm Thursday",
+    address: "1150 W. Fullerton Avenue, Chicago, IL 60614",
+    phone: "(312) 744-1926"
+  }
+];
+
+const game = document.getElementById("game");
+const map = document.getElementById("map");
+const scoreEl = document.getElementById("score");
+const foundEl = document.getElementById("found");
+const totalEl = document.getElementById("total");
+const start = document.getElementById("start");
+const play = document.getElementById("play");
+
+let libraries = [...FALLBACK_LIBRARIES];
+let found = new Set();
+let score = 0;
+let running = false;
+let snowflakes = [];
+let snowTimer = null;
+let resizeTimer = null;
+
+/* ---------- Library rendering ---------- */
+
+function renderLibraries() {
+  map.innerHTML = "";
+
+  libraries.forEach((library, index) => {
+    const el = document.createElement("div");
+    el.className = "library";
+    el.dataset.index = index;
+
+    // Deterministic pseudo-random placement.
+    const x = 10 + ((index * 37) % 80);
+    const y = 19 + ((index * 53) % 68);
+
+    el.style.left = x + "%";
+    el.style.top = y + "%";
+
+    el.innerHTML = `
+      <div class="pin"></div>
+      <div class="library-name"></div>
+      <div class="library-address"></div>
+      <div class="library-status"></div>
+    `;
+
+    el.querySelector(".library-name").textContent = library.name;
+    el.querySelector(".library-address").textContent = library.address;
+    el.querySelector(".library-status").textContent = library.status || "";
+
+    el.addEventListener("click", () => discoverLibrary(index, el));
+
+    map.appendChild(el);
+  });
+
+  totalEl.textContent = libraries.length;
+  foundEl.textContent = found.size;
+}
+
+function discoverLibrary(index, el) {
+  if (found.has(index)) return;
+
+  found.add(index);
+  score += 100;
+
+  el.classList.add("found");
+
+  const library = libraries[index];
+  showBurst(el, "LIBRARY FOUND! +100");
+
+  scoreEl.textContent = score;
+  foundEl.textContent = found.size;
+
+  document.getElementById("message").textContent =
+    `${library.name} discovered — ${library.address}`;
+}
+
+function showBurst(el, text) {
+  const r = el.getBoundingClientRect();
+  const b = document.createElement("div");
+
+  b.className = "burst";
+  b.textContent = text;
+  b.style.left = (r.left + r.width / 2) + "px";
+  b.style.top = (r.top + 8) + "px";
+
+  game.appendChild(b);
+
+  setTimeout(() => b.remove(), 750);
+}
+
+/* ---------- Snowflake game ---------- */
+
+function createSnowflake() {
+  if (!running) return;
+
+  const flake = document.createElement("div");
+  flake.className = "snowflake";
+  flake.textContent = Math.random() > .2 ? "❄" : "✦";
+
+  const x = 2 + Math.random() * 96;
+  const duration = 5 + Math.random() * 7;
+  const size = 18 + Math.random() * 22;
+
+  flake.style.left = x + "%";
+  flake.style.top = "-50px";
+  flake.style.fontSize = size + "px";
+
+  game.appendChild(flake);
+
+  const startTime = performance.now();
+  const startY = -60;
+  const endY = window.innerHeight + 60;
+  const speed = (endY - startY) / (duration * 1000);
+
+  const snow = {
+    el: flake,
+    start: startTime,
+    speed,
+    wobble: Math.random() * Math.PI * 2,
+    x: x
+  };
+
+  snowflakes.push(snow);
+
+  flake.addEventListener("click", event => {
+    event.stopPropagation();
+    catchSnowflake(snow);
+  });
+}
+
+function catchSnowflake(snow) {
+  if (!snow.el.parentNode) return;
+
+  const r = snow.el.getBoundingClientRect();
+
+  score += 25;
+  scoreEl.textContent = score;
+
+  const burst = document.createElement("div");
+  burst.className = "burst";
+  burst.textContent = "+25 ❄";
+  burst.style.left = (r.left + r.width / 2) + "px";
+  burst.style.top = r.top + "px";
+  game.appendChild(burst);
+
+  setTimeout(() => burst.remove(), 750);
+
+  snow.el.remove();
+  snowflakes = snowflakes.filter(s => s !== snow);
+
+  // Every snowflake catch points toward a library.
+  if (libraries.length) {
+    const index = Math.floor(Math.random() * libraries.length);
+    const library = libraries[index];
+    document.getElementById("message").textContent =
+      `❄ Snowflake captured! Try the ${library.name} marker.`;
+  }
+}
+
+function animationLoop(now) {
+  if (!running) return;
+
+  snowflakes.forEach(snow => {
+    if (!snow.el.parentNode) return;
+
+    const elapsed = now - snow.start;
+    const y = -60 + elapsed * snow.speed;
+    const wobble = Math.sin(elapsed / 500 + snow.wobble) * 45;
+
+    snow.el.style.transform =
+      `translate(${wobble}px, ${y}px) rotate(${elapsed / 8}deg)`;
+
+    if (y > window.innerHeight + 70) {
+      snow.el.remove();
+    }
+  });
+
+  snowflakes = snowflakes.filter(s => s.el.parentNode);
+
+  requestAnimationFrame(animationLoop);
+}
+
+/* ---------- Source parser ---------- */
+
+function clean(text) {
+  return (text || "").replace(/\s+/g, " ").trim();
+}
+
+function parseLibraries(html) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const bodyText = clean(doc.body.textContent);
+
+  /*
+    Try common card-like structures first.
+  */
+  const candidates = [
+    ...doc.querySelectorAll(
+      "article, li, .location, .library, [class*='location'], [class*='library']"
+    )
+  ];
+
+  const result = [];
+
+  for (const node of candidates) {
+    const text = clean(node.textContent);
+
+    if (!text || text.length < 20) continue;
+
+    const addressMatch = text.match(
+      /\d{1,5}\s+[^,]{3,60},\s*Chicago,\s*IL\s+\d{5}/i
+    );
+
+    const phoneMatch = text.match(
+      /\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/
+    );
+
+    if (!addressMatch) continue;
+
+    const address = clean(addressMatch[0]);
+    const phone = phoneMatch ? phoneMatch[0] : "";
+
+    let name = clean(
+      node.querySelector("h1,h2,h3,h4,.name,[class*='name']")?.textContent
+    );
+
+    if (!name) {
+      const beforeAddress = clean(text.split(address)[0]);
+      name = beforeAddress
+        .replace(/Open.*$/i, "")
+        .replace(/Closed.*$/i, "")
+        .replace(/Phone:.*$/i, "")
+        .trim();
+    }
+
+    if (!name || name.length > 80) continue;
+
+    const statusMatch = text.match(
+      /(Open today until [^|]+|Closed until [^|]+)/i
+    );
+
+    result.push({
+      name,
+      address,
+      phone,
+      status: statusMatch ? clean(statusMatch[1]) : ""
+    });
+  }
+
+  /*
+    De-duplicate by name + address.
+  */
+  const unique = [];
+  const seen = new Set();
+
+  for (const item of result) {
+    const key = item.name.toLowerCase() + "|" + item.address.toLowerCase();
+
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(item);
+    }
+  }
+
+  /*
+    If parsing finds plausible locations, use them.
+    Otherwise preserve the known fallback data.
+  */
+  return unique.length >= 2 ? unique : null;
+}
+
+async function loadRemoteLibraries() {
+  try {
+    const response = await fetch(SOURCE_URL, {
+      method: "GET",
+      mode: "cors",
+      cache: "no-store"
+    });
+
+    if (!response.ok) throw new Error("HTTP " + response.status);
+
+    const html = await response.text();
+    const parsed = parseLibraries(html);
+
+    if (parsed) {
+      libraries = parsed;
+      found.clear();
+      renderLibraries();
+
+      document.getElementById("message").textContent =
+        `Loaded ${libraries.length} library locations from the source.`;
+    }
+  } catch (error) {
+    /*
+      A local HTML file may be blocked from reading another origin by
+      browser CORS rules. The game still works with the embedded data.
+    */
+    document.getElementById("message").textContent =
+      `Using the embedded Chicago library locations. Source refresh unavailable in this browser.`;
+  }
+}
+
+/* ---------- Game lifecycle ---------- */
+
+function startGame() {
+  running = true;
+  start.classList.add("hidden");
+
+  if (snowTimer) clearInterval(snowTimer);
+
+  snowTimer = setInterval(createSnowflake, 650);
+
+  for (let i = 0; i < 7; i++) {
+    setTimeout(createSnowflake, i * 180);
+  }
+
+  requestAnimationFrame(animationLoop);
+}
+
+play.addEventListener("click", startGame);
+
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    // Keep the game fluid without rebuilding existing snowflakes.
+  }, 100);
+});
+
+/* Start with known source locations immediately. */
+renderLibraries();
+
+/* Try to retrieve a fuller list from the supplied page. */
+loadRemoteLibraries();
+</script>
+</body>
 </html>
