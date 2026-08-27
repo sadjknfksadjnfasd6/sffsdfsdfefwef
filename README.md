@@ -39,3 +39,5 @@ https://sadjknfksadjnfasd6.github.io/sffsdfsdfefwef/
 <p>❤️  -  <b>MADE IN CHICAGO</b>    - 🖤  - BECAUSE THEY VOTED IN A BLACK MAYOR WITH THE INITIALS <b>BJ</b> ...  🙊  #BLM!  🤹🏿‍♂️</p>
 
 🎮  <b>SPONSORED BY BULLSHIT</b> - 5/3 Bank, Tradestation and Uber  🚮
+
+❤️🩷🧡💛💚💙🩵💜
