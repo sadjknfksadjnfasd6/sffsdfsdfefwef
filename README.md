@@ -32,10 +32,10 @@ Closed until 12:00 pm Thursday
 <b>1150 W. Fullerton Avenue
 Chicago, IL 60614</b>
 
-# MCDONALDS
+☘️  # MCDONALDS  ☘️
 
 https://sadjknfksadjnfasd6.github.io/sffsdfsdfefwef/
 
 <b>MADE IN CHICAGO</b> 🖤 BECAUSE THEY VOTED IN A BLACK MAYOR WITH THE INITIALS <b>BJ</b> ... #BLM!
 
-<b>SPONSORED BY BULLSHIT</b> - 5/3 Bank, Tradestation and Uber  🚮
+🎮  <b>SPONSORED BY BULLSHIT</b> - 5/3 Bank, Tradestation and Uber  🚮
