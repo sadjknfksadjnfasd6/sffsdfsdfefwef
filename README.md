@@ -1,6 +1,6 @@
 💻
-<b>NEAR 60610
-82 locations</b>
+<b><u>NEAR 60610
+82 locations</b></u>
 
 <b>Near North</b>
 Open today until 6:00 pm
@@ -32,7 +32,7 @@ Closed until 12:00 pm Thursday
 <b>1150 W. Fullerton Avenue
 Chicago, IL 60614</b>
 
-☘️  <b># MCDONALD'S</b>  ☘️
+☘️  <b><u># MCDONALD'S</b></u>  ☘️
 
 https://sadjknfksadjnfasd6.github.io/sffsdfsdfefwef/
 
