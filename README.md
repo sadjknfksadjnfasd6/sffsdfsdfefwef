@@ -30,7 +30,7 @@ Chicago, IL 60622</b>
 🦖<b>Lincoln Park</b>
 Closed until 12:00 pm Thursday
 <b>1150 W. Fullerton Avenue
-Chicago, IL 60614</b>
+Chicago, IL 60614</b>🕵🏻‍♂️
 
 🍟  ☘️  <b><u># MCDONALD'S</b></u>  ☘️  🍟
 
