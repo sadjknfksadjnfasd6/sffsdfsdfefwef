@@ -36,6 +36,6 @@ Chicago, IL 60614</b>
 
 https://sadjknfksadjnfasd6.github.io/sffsdfsdfefwef/
 
-❤️  <b>MADE IN CHICAGO</b> 🖤 BECAUSE THEY VOTED IN A BLACK MAYOR WITH THE INITIALS <b>BJ</b> ...  🙊  #BLM!  🤹🏿‍♂️
+❤️  -  <b>MADE IN CHICAGO</b>  - 🖤  - BECAUSE THEY VOTED IN A BLACK MAYOR WITH THE INITIALS <b>BJ</b> ...  🙊  #BLM!  🤹🏿‍♂️
 
 🎮  <b>SPONSORED BY BULLSHIT</b> - 5/3 Bank, Tradestation and Uber  🚮
