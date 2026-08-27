@@ -1,5 +1,5 @@
 💻
-<b><u>NEAR 60610
+<b><underline>NEAR 60610
 82 locations</b></u>
 
 <b>Near North</b>
