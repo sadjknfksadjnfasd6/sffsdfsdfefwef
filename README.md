@@ -1,6 +1,6 @@
 💻
-<b><u>NEAR 60610
-82 locations</b></u> 🏄🏻‍♂️
+<b><u>NEAR 🤶🏻60610
+82 locations🧑🏻‍🎨</b></u> 🏄🏻‍♂️
 
 🐿<b>Near North</b>
 Open today until 6:00 pm
